@@ -1704,8 +1704,17 @@ class Sam3MultiplexBase(Sam3VideoBase):
             if len(inference_state["output_dict"]["cond_frame_outputs"]) == 0:
                 logger.warning(
                     "Skipping propagation: obj_ids is non-empty but cond_frame_outputs is empty "
-                    "(state inconsistency, likely during object removal)"
+                    "(state inconsistency, likely during object removal); emitting zero masks"
                 )
+                skipped_ids = list(inference_state["obj_ids"])
+                if filter_obj_ids is not None:
+                    skipped_ids = [oid for oid in skipped_ids if oid in filter_obj_ids]
+                if skipped_ids:
+                    H = W = self.tracker.low_res_mask_size
+                    n = len(skipped_ids)
+                    obj_ids_local.extend(skipped_ids)
+                    low_res_masks_list.append(torch.zeros(n, H, W, device=self.device))
+                    obj_scores_list.append(torch.zeros(n, device=self.device))
                 continue
 
             # propagate one frame
