@@ -1701,6 +1701,12 @@ class Sam3MultiplexBase(Sam3VideoBase):
         for inference_state in inference_states:
             if len(inference_state["obj_ids"]) == 0:
                 continue  # skip propagation on empty inference states
+            if len(inference_state["output_dict"]["cond_frame_outputs"]) == 0:
+                logger.warning(
+                    "Skipping propagation: obj_ids is non-empty but cond_frame_outputs is empty "
+                    "(state inconsistency, likely during object removal)"
+                )
+                continue
 
             # propagate one frame
             num_frames_propagated = 0
